@@ -52,8 +52,6 @@ uv run python -m weather_agent.main
 weather-bot
 ```
 
-后端详细文档请查看 [backend/README.md](backend/README.md)
-
 ### 前端
 
 ```bash
