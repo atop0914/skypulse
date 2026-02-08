@@ -2,8 +2,8 @@
 
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
-from weather_agent.core.config import settings
-from weather_agent.services.qweather_service import qweather_tool
+from skypulse.core.config import settings
+from skypulse.services.qweather_service import qweather_tool
 
 
 class WeatherAgent:

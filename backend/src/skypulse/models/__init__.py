@@ -3,7 +3,7 @@
 提供 Pydantic 数据模型定义。
 """
 
-from weather_agent.models.schemas import (
+from skypulse.models.schemas import (
     WeatherNow,
     WeatherForecast,
     WeatherResponse,

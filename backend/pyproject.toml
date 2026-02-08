@@ -1,7 +1,7 @@
 [project]
-name = "weather_agent"
+name = "skypulse"
 version = "0.1.0"
-description = "智能天气机器人 - 基于 AI Agent"
+description = "🌪️ SkyPulse - 智能天气机器人，基于 AI Agent 的天气查询应用"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -23,7 +23,7 @@ dev = [
 ]
 
 [project.scripts]
-weather-bot = "weather_agent.main:main"
+skypulse = "weather_agent.main:main"
 
 [tool.ruff]
 line-length = 100

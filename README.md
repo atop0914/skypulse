@@ -1,4 +1,4 @@
-# Weather Bot
+# 🌪️ SkyPulse
 
 智能天气机器人 - 基于 AI Agent 的天气查询应用
 
@@ -49,7 +49,7 @@ uv run python -m weather_agent.main
 或使用命令行工具：
 
 ```bash
-weather-bot
+skypulse
 ```
 
 ### 前端

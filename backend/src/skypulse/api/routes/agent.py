@@ -1,9 +1,9 @@
 """REST API 路由"""
 
 from fastapi import APIRouter
-from weather_agent.models.schemas import ChatRequest, ChatResponse
-from weather_agent.agent.weather_agent import WeatherAgent
-from weather_agent.core.config import settings
+from skypulse.models.schemas import ChatRequest, ChatResponse
+from skypulse.agent.weather_agent import WeatherAgent
+from skypulse.core.config import settings
 
 router = APIRouter(prefix="/api/v1", tags=["weather"])
 

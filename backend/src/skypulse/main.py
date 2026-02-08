@@ -9,7 +9,7 @@ app = FastAPI(
 )
 
 # 注册路由
-from weather_agent.api.routes import router
+from skypulse.api.routes import router
 app.include_router(router)
 
 
@@ -29,7 +29,7 @@ def main():
     """启动服务"""
     import uvicorn
     uvicorn.run(
-        "weather_agent.main:app",
+        "skypulse.main:app",
         host="0.0.0.0",
         port=8000,
         reload=True

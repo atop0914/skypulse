@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  skypulse:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skypulse
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      # 和风天气 API Key
+      - QWEATHER_API_KEY=${QWEATHER_API_KEY:-your_api_key_here}
+      # OpenAI API Key
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your_openai_key_here}
+      # 服务器配置
+      - HOST=0.0.0.0
+      - PORT=8000
+      # 日志级别
+      - LOG_LEVEL=info
+    volumes:
+      - ./backend/src:/app/src:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # 前端服务（可选）
+  frontend:
+    image: node:20-alpine
+    container_name: skypulse-frontend
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev -- --host"
+    profiles:
+      - with-frontend
+
+networks:
+  default:
+    name: skypulse-network

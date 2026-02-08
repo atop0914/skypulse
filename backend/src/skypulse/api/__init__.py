@@ -3,6 +3,6 @@
 提供 REST API 端点。
 """
 
-from weather_agent.api.routes.agent import router
+from skypulse.api.routes.agent import router
 
 __all__ = ["router"]

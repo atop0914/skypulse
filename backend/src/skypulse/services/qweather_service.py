@@ -3,7 +3,7 @@
 import httpx
 import json as json_module
 from langchain_core.tools import tool
-from weather_agent.core.config import settings
+from skypulse.core.config import settings
 
 
 class QWeatherService:
