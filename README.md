@@ -45,7 +45,7 @@ skypulse/
 ```bash
 cd backend
 uv sync
-uv run python -m weather_agent.main
+uv run python -m skypulse.main
 ```
 
 或使用命令行工具：

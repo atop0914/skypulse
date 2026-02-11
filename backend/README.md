@@ -1,14 +1,13 @@
-# Weather Bot - LangChain 天气智能服务机器人
+# SkyPulse Backend - 智能天气机器人后端
 
 ## 项目结构
 
 ```
 backend/
 ├── src/
-│   └── weather_agent/
+│   └── skypulse/
 │       ├── __init__.py              # 包初始化
 │       ├── main.py                   # FastAPI 应用入口
-│       ├── cli.py                    # CLI 终端测试界面
 │       ├── core/                     # 核心模块
 │       │   ├── __init__.py          # 导出配置和提示词
 │       │   ├── config.py             # 应用配置（环境变量管理）
@@ -21,15 +20,16 @@ backend/
 │       │   └── qweather_service.py   # 和风天气 API 封装
 │       ├── agent/                     # Agent 模块
 │       │   ├── __init__.py          # 导出 WeatherAgent
-│       │   └── weather_agent.py      # LangChain 天气 Agent
+│       │   └── agent.py             # LangChain 天气 Agent
 │       ├── api/                      # API 层
 │       │   ├── __init__.py          # 导出路由
 │       │   └── routes/
 │       │       ├── __init__.py      # 导出路由
 │       │       └── agent.py         # REST API 端点
-│       └── utils/                    # 工具函数
+│       └── utils/                   # 工具函数
 │           ├── __init__.py          # 导出辅助函数
-│           └── helpers.py            # 通用函数
+│           ├── location_cache.py    # 城市名缓存
+│           └── helpers.py           # 通用函数
 ├── .env.example                      # 环境变量示例
 ├── .python-version                   # Python 版本
 ├── pyproject.toml                   # 项目配置
@@ -49,12 +49,13 @@ backend/
 - **qweather_service.py**: 和风天气 API 的封装，包含天气查询工具函数
 
 ### agent/ - AI Agent
-- **weather_agent.py**: 基于 LangChain 的天气查询 Agent
+- **agent.py**: 基于 LangChain 的天气查询 Agent
 
 ### api/ - REST API
 - **routes/agent.py**: FastAPI 路由定义
 
 ### utils/ - 辅助工具
+- **location_cache.py**: SQLite 城市名到 location_id 缓存
 - **helpers.py**: 通用辅助函数
 
 ## 快速开始
@@ -79,13 +80,13 @@ cp .env.example .env
 ### 3. 运行应用
 
 ```bash
-uv run python -m weather_agent.main
+uv run python -m skypulse.main
 ```
 
 或使用命令行工具：
 
 ```bash
-weather-bot
+skypulse
 ```
 
 ## 技术栈
@@ -95,6 +96,7 @@ weather-bot
 - **LangChain OpenAI**: OpenAI 集成
 - **Pydantic**: 数据验证
 - **pydantic-settings**: 环境变量管理
+- **SQLite**: 本地缓存
 
 ## 许可证
 

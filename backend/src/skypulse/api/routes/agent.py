@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 from skypulse.models.schemas import ChatRequest, ChatResponse
-from skypulse.agent.weather_agent import WeatherAgent
+from skypulse.agent.agent import WeatherAgent
 from skypulse.core.config import settings
 
 router = APIRouter(prefix="/api/v1", tags=["weather"])
@@ -23,7 +23,7 @@ def get_agent() -> WeatherAgent:
 @router.get("/health")
 async def health_check():
     """健康检查接口"""
-    return {"status": "ok", "service": "weather_agent"}
+    return {"status": "ok", "service": "skypulse"}
 
 
 @router.post("/chat", response_model=ChatResponse)

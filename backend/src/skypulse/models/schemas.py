@@ -48,4 +48,4 @@ class ChatResponse(BaseModel):
     """聊天响应"""
 
     response: str
-    agent: str = "weather_agent"
+    agent: str = "skypulse"
