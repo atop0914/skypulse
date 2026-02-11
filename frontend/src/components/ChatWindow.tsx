@@ -3,7 +3,7 @@ import { useChatStore } from '../store/useChatStore';
 import { MessageBubble } from './MessageBubble';
 
 export const ChatWindow: React.FC = () => {
-  const { messages, weatherData } = useChatStore();
+  const { messages } = useChatStore();
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {

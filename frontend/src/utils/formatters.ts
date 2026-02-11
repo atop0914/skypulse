@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ChatRequest, ChatResponse, WeatherData } from '../types';
+import type { ChatResponse } from '../types';
 
 const api = axios.create({
   baseURL: '/api/v1',

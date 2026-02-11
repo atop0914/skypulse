@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useChatStore } from '../store/useChatStore';
-import { chatApi } from '../services/api';
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>;

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Header } from './Header';
-import { ChatWindow } from './ChatWindow';
-import { ChatInput } from './ChatInput';
-import { WeatherCard } from './WeatherCard';
+import { Header } from '../components/Header';
+import { ChatWindow } from '../components/ChatWindow';
+import { ChatInput } from '../components/ChatInput';
+import { WeatherCard } from '../components/WeatherCard';
 import { useTheme } from '../contexts/ThemeContext';
 import { useChatStore } from '../store/useChatStore';
 
