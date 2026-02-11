@@ -1,50 +1,36 @@
-version: '3.8'
-
 services:
-  skypulse:
+  backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-    container_name: skypulse
+    container_name: skypulse-backend
+    # 注意：这里的 service 名字叫 backend，Nginx 找的就是它
     restart: unless-stopped
-    ports:
-      - "8000:8000"
-    environment:
-      - PYTHONPATH=/app
-      # 和风天气 API Key
-      - QWEATHER_API_KEY=${QWEATHER_API_KEY:-your_api_key_here}
-      # OpenAI API Key
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-your_openai_key_here}
-      # 服务器配置
-      - HOST=0.0.0.0
-      - PORT=8000
-      # 日志级别
-      - LOG_LEVEL=info
-    volumes:
-      - ./backend/src:/app/src:ro
+    env_file: .env
+    expose:
+      - "8000"
+    networks:
+      - skypulse-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 10s
 
-  # 前端服务（可选）
   frontend:
-    image: node:20-alpine
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: skypulse-frontend
     restart: unless-stopped
-    working_dir: /app
     ports:
-      - "5173:5173"
-    environment:
-      - VITE_API_URL=http://localhost:8000
-    volumes:
-      - ./frontend:/app
-    command: sh -c "npm install && npm run dev -- --host"
-    profiles:
-      - with-frontend
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - skypulse-net
 
 networks:
-  default:
-    name: skypulse-network
+  skypulse-net:
+    driver: bridge

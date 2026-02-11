@@ -2,6 +2,7 @@
 
 from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+
 from skypulse.core.config import settings
 from skypulse.services.qweather_service import qweather_tool
 

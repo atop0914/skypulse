@@ -12,16 +12,16 @@ DB_PATH = DATA_DIR / "location_cache.db"
 def init_cache():
     """初始化缓存数据库"""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    cursor.execute('''
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS location_cache (
             city_name TEXT PRIMARY KEY,
             location_id TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    ''')
+    """)
     conn.commit()
     conn.close()
 
@@ -38,13 +38,10 @@ def get_location_id(city_name: str) -> Optional[str]:
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute(
-            'SELECT location_id FROM location_cache WHERE city_name = ?',
-            (city_name,)
-        )
+        cursor.execute("SELECT location_id FROM location_cache WHERE city_name = ?", (city_name,))
         result = cursor.fetchone()
         conn.close()
-        
+
         if result:
             return result[0]
         return None
@@ -62,10 +59,13 @@ def save_location_id(city_name: str, location_id: str):
     try:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute('''
+        cursor.execute(
+            """
             INSERT OR REPLACE INTO location_cache (city_name, location_id)
             VALUES (?, ?)
-        ''', (city_name, location_id))
+        """,
+            (city_name, location_id),
+        )
         conn.commit()
         conn.close()
     except sqlite3.Error:

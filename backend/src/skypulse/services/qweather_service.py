@@ -1,8 +1,10 @@
 """和风天气 API 封装"""
 
-import httpx
 import json as json_module
+
+import httpx
 from langchain_core.tools import tool
+
 from skypulse.core.config import settings
 from skypulse.utils.location_cache import get_location_id, save_location_id
 
@@ -41,7 +43,7 @@ class QWeatherService:
             response = await client.get(url, params=params, headers=headers)
 
             if not response.text:
-                raise ValueError(f"Geo API 返回空响应，请检查 API Key 和 URL 配置")
+                raise ValueError("Geo API 返回空响应，请检查 API Key 和 URL 配置")
 
             try:
                 data = response.json()
@@ -68,7 +70,7 @@ class QWeatherService:
             response = await client.get(url, params=params, headers=headers)
 
             if not response.text:
-                raise ValueError(f"Weather API 返回空响应")
+                raise ValueError("Weather API 返回空响应")
 
             try:
                 return response.json()
@@ -90,7 +92,7 @@ class QWeatherService:
             response = await client.get(url, params=params, headers=headers)
 
             if not response.text:
-                raise ValueError(f"Forecast API 返回空响应")
+                raise ValueError("Forecast API 返回空响应")
 
             try:
                 return response.json()

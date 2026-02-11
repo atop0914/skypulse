@@ -4,11 +4,11 @@
 """
 
 from skypulse.models.schemas import (
-    WeatherNow,
-    WeatherForecast,
-    WeatherResponse,
     ChatRequest,
     ChatResponse,
+    WeatherForecast,
+    WeatherNow,
+    WeatherResponse,
 )
 
 __all__ = [
