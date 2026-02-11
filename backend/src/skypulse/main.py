@@ -13,6 +13,13 @@ from skypulse.api.routes import router
 app.include_router(router)
 
 
+@app.on_event("startup")
+async def startup_event():
+    """启动时初始化缓存数据库"""
+    from skypulse.utils.location_cache import init_cache
+    init_cache()
+
+
 @app.get("/")
 async def root():
     """根路径"""

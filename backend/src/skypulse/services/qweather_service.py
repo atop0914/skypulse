@@ -4,6 +4,7 @@ import httpx
 import json as json_module
 from langchain_core.tools import tool
 from skypulse.core.config import settings
+from skypulse.utils.location_cache import get_location_id, save_location_id
 
 
 class QWeatherService:
@@ -26,6 +27,12 @@ class QWeatherService:
         返回:
             LocationID，如 "101010100"
         """
+        # 先检查本地缓存
+        cached_id = get_location_id(city)
+        if cached_id:
+            return cached_id
+
+        # 缓存未命中，调用 API
         async with httpx.AsyncClient(timeout=30.0) as client:
             url = f"{self.base_url}/geo/v2/city/lookup"
             params = {"location": city, "lang": "zh"}
@@ -39,7 +46,10 @@ class QWeatherService:
             try:
                 data = response.json()
                 if data.get("code") == "200" and data.get("location"):
-                    return data["location"][0]["id"]
+                    location_id = data["location"][0]["id"]
+                    # 存入缓存
+                    save_location_id(city, location_id)
+                    return location_id
                 raise ValueError(f"无法找到城市 {city} 的 LocationID: {data}")
             except json_module.JSONDecodeError as e:
                 raise ValueError(f"Geo API 返回无效 JSON: {response.text}") from e

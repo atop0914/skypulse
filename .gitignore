@@ -7,6 +7,9 @@ wheels/
 *.egg-info
 .ruff_cache
 
+# Local cache database
+data/
+
 # Virtual environments
 .venv
 .env
