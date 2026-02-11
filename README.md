@@ -16,13 +16,22 @@ skypulse/
 │   ├── src/
 │   │   └── skypulse/        # 主包
 │   │       ├── __init__.py   # 包初始化
-│   │       ├── main.py       # FastAPI 入口
+│   │       ├── main.py       # FastAPI 应用入口
+│   │       ├── cli.py        # CLI 终端测试界面
 │   │       ├── core/         # 配置和提示词
+│   │       │   ├── config.py # 应用配置
+│   │       │   └── prompts.py # 提示词模板
 │   │       ├── models/       # 数据模型
-│   │       ├── services/     # API 服务 (qweather_service.py)
+│   │       │   └── schemas.py # Pydantic 模型
+│   │       ├── services/     # API 服务
+│   │       │   └── qweather_service.py # 和风天气 API
 │   │       ├── agent/        # AI Agent
+│   │       │   └── agent.py  # LangChain Agent
 │   │       ├── api/         # REST API 路由
-│   │       └── utils/       # 工具函数 (location_cache.py)
+│   │       │   └── routes/   # FastAPI 路由
+│   │       └── utils/       # 工具函数
+│   │           ├── location_cache.py # 城市缓存
+│   │           └── helpers.py        # 辅助函数
 │   ├── README.md            # 后端详细文档
 │   ├── pyproject.toml
 │   └── uv.lock
@@ -42,13 +51,21 @@ skypulse/
 
 ### 后端
 
+**启动 FastAPI 服务：**
+
 ```bash
 cd backend
 uv sync
 uv run python -m skypulse.main
 ```
 
-或使用命令行工具：
+**或使用 CLI 终端测试界面：**
+
+```bash
+uv run python -m skypulse.cli
+```
+
+**或命令行工具：**
 
 ```bash
 skypulse

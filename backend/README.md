@@ -79,8 +79,16 @@ cp .env.example .env
 
 ### 3. 运行应用
 
+**方式一：启动 FastAPI 服务**
+
 ```bash
 uv run python -m skypulse.main
+```
+
+**方式二：使用 CLI 终端测试界面**
+
+```bash
+uv run python -m skypulse.cli
 ```
 
 或使用命令行工具：
