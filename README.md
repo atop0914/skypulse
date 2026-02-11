@@ -79,6 +79,25 @@ npm install
 npm run dev
 ```
 
+### Docker Compose（推荐用于生产部署）
+
+使用 Docker Compose 一键启动前后端服务：
+
+```bash
+# 构建并启动所有服务
+docker compose up -d --build
+
+# 查看日志
+docker compose logs -f
+
+# 停止服务
+docker compose down
+```
+
+启动后访问：
+- **前端页面**: http://localhost
+- **后端 API**: http://localhost/api/v1
+
 ## 文档
 
 - [后端详细文档](backend/README.md)
