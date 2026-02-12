@@ -13,7 +13,7 @@ const App: React.FC = () => {
     
     try {
       const response = await chatApi.sendMessage(message);
-      addMessage('assistant', response.reply);
+      addMessage('assistant', response.response);
       if (response.weather) {
         setWeatherData(response.weather);
       }
