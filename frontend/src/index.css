@@ -2,6 +2,224 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base styles */
 body {
-  @apply bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800;
+  @apply bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100 dark:bg-gray-800;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-gray-600;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-400 dark:bg-gray-500;
+}
+
+/* Glassmorphism utility */
+@layer components {
+  .glass {
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl border border-white/20 dark:border-gray-700/30;
+  }
+  
+  .glass-card {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-white/30 dark:border-gray-700/30 shadow-xl shadow-black/5;
+  }
+  
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600;
+  }
+  
+  .aurora-text {
+    @apply bg-clip-text text-transparent bg-aurora-gradient bg-[length:200%_200%];
+    animation: gradient 8s ease infinite;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-xl font-semibold 
+           shadow-lg shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105 
+           active:scale-95 transition-all duration-300;
+  }
+  
+  .btn-secondary {
+    @apply px-4 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-lg rounded-xl font-medium
+           border border-gray-200/50 dark:border-gray-600/50
+           hover:bg-white dark:hover:bg-gray-600 hover:scale-105
+           active:scale-95 transition-all duration-300 shadow-sm;
+  }
+  
+  .input-modern {
+    @apply w-full px-5 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-2xl
+           border border-gray-200/50 dark:border-gray-700/50
+           focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50
+           placeholder:text-gray-400 dark:placeholder:text-gray-500
+           transition-all duration-300 shadow-inner;
+  }
+  
+  .message-bubble-user {
+    @apply bg-gradient-to-r from-sky-500 to-blue-600 text-white rounded-2xl rounded-br-md 
+           shadow-lg shadow-sky-500/30 p-4 animate-slide-up;
+  }
+  
+  .message-bubble-assistant {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl rounded-bl-md 
+           shadow-lg border border-gray-100/50 dark:border-gray-700/30 p-4 animate-slide-up;
+  }
+  
+  .weather-card {
+    @apply relative overflow-hidden bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 
+           rounded-3xl p-6 text-white shadow-2xl shadow-blue-500/30
+           before:absolute before:top-0 before:right-0 before:w-64 before:h-64 
+           before:bg-white/10 before:rounded-full before:-translate-y-1/2 before:translate-x-1/2
+           after:absolute after:bottom-0 after:left-0 after:w-48 after:h-48 
+           after:bg-white/10 after:rounded-full after:translate-y-1/2 after:-translate-x-1/2;
+  }
+  
+  .header-glass {
+    @apply sticky top-0 z-50 bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl 
+           border-b border-gray-200/30 dark:border-gray-700/30;
+  }
+}
+
+/* Animations */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.3); opacity: 0; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Loading skeleton */
+.skeleton {
+  @apply bg-gray-200 dark:bg-gray-700 rounded;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Particle effects */
+.particle {
+  @apply absolute rounded-full bg-white/20 animate-float;
+}
+
+/* Weather icon animations */
+.weather-icon-sun {
+  @apply animate-spin-slow;
+}
+
+.weather-icon-cloud {
+  @apply animate-pulse-slow;
+}
+
+.weather-icon-rain {
+  @apply animate-pulse;
+}
+
+/* Quick question button hover effect */
+.quick-btn {
+  @apply relative overflow-hidden transition-all duration-300;
+}
+
+.quick-btn::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent 
+         -translate-x-full transition-transform duration-500;
+}
+
+.quick-btn:hover::before {
+  @apply translate-x-full;
+}
+
+/* Message send animation */
+.message-send {
+  animation: messageSend 0.3s ease-out;
+}
+
+@keyframes messageSend {
+  0% { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Input focus glow */
+.input-glow:focus-within {
+  box-shadow: 0 0 30px rgba(14, 165, 233, 0.15);
+}
+
+/* Tooltip styles */
+.tooltip {
+  @apply invisible opacity-0 transition-all duration-300 absolute;
+}
+
+.tooltip-trigger:hover .tooltip {
+  @apply visible opacity-100;
+}
+
+/* Empty state animation */
+.empty-state-icon {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+
+/* Typing indicator */
+.typing-indicator span {
+  @apply inline-block w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full mx-0.5;
+  animation: typing 1.4s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Neon glow effects */
+.neon-blue {
+  text-shadow: 0 0 10px rgba(14, 165, 233, 0.5),
+               0 0 20px rgba(14, 165, 233, 0.3),
+               0 0 30px rgba(14, 165, 233, 0.2);
+}
+
+.neon-purple {
+  text-shadow: 0 0 10px rgba(124, 58, 237, 0.5),
+               0 0 20px rgba(124, 58, 237, 0.3),
+               0 0 30px rgba(124, 58, 237, 0.2);
 }

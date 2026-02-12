@@ -15,10 +15,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onSendMessage }) => {
   const { weatherData } = useChatStore();
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
       <Header isDark={isDark} onToggleTheme={toggleTheme} />
       
-      {weatherData && <WeatherCard weather={weatherData} />}
+      {weatherData && (
+        <div className="max-w-4xl mx-auto w-full px-4 pt-4">
+          <WeatherCard weather={weatherData} />
+        </div>
+      )}
       
       <ChatWindow />
       <ChatInput onSend={onSendMessage} />
