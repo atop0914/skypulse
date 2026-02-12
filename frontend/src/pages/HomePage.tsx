@@ -14,6 +14,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onSendMessage }) => {
   const { isDark, toggleTheme } = useTheme();
   const { weatherData } = useChatStore();
 
+  const handleQuickQuestion = (question: string) => {
+    onSendMessage(question);
+  };
+
   return (
     <div className="h-screen flex flex-col bg-gradient-to-br from-sky-100 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-900 dark:to-indigo-950">
       <Header isDark={isDark} onToggleTheme={toggleTheme} />
@@ -24,7 +28,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onSendMessage }) => {
         </div>
       )}
       
-      <ChatWindow />
+      <ChatWindow onQuickQuestion={handleQuickQuestion} />
       <ChatInput onSend={onSendMessage} />
     </div>
   );

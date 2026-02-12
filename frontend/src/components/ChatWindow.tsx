@@ -2,7 +2,11 @@ import React from 'react';
 import { useChatStore } from '../store/useChatStore';
 import { MessageBubble } from './MessageBubble';
 
-export const ChatWindow: React.FC = () => {
+interface ChatWindowProps {
+  onQuickQuestion?: (question: string) => void;
+}
+
+export const ChatWindow: React.FC<ChatWindowProps> = ({ onQuickQuestion }) => {
   const { messages } = useChatStore();
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
@@ -62,6 +66,7 @@ export const ChatWindow: React.FC = () => {
               {quickQuestions.map((q, index) => (
                 <button
                   key={index}
+                  onClick={() => onQuickQuestion?.(q.text)}
                   className="group relative p-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 active:scale-95 overflow-hidden quick-btn"
                 >
                   <div className="relative flex items-center gap-3">

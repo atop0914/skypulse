@@ -3,9 +3,10 @@ import { useChatStore } from '../store/useChatStore';
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>;
+  onQuickQuestion?: (question: string) => void;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
+export const ChatInput: React.FC<ChatInputProps> = ({ onSend, onQuickQuestion }) => {
   const [input, setInput] = useState('');
   const { isLoading } = useChatStore();
 
@@ -20,6 +21,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend }) => {
   const handleQuickQuestion = (question: string) => {
     if (!isLoading) {
       setInput(question);
+      onQuickQuestion?.(question);
     }
   };
 
