@@ -84,6 +84,9 @@ npm run dev
 使用 Docker Compose 一键启动前后端服务：
 
 ```bash
+# 复制环境变量配置文件
+cp .env.example .env
+
 # 构建并启动所有服务
 docker compose up -d --build
 
