@@ -5,7 +5,43 @@ import json
 import httpx
 
 
-async def get_city_by_ip(client_ip: str = None) -> str | None:
+def is_private_ip(ip: str) -> bool:
+    """
+    检查是否为内网 IP
+    
+    内网 IP 范围：
+    - 10.0.0.0/8
+    - 172.16.0.0/12
+    - 192.168.0.0/16
+    - 127.0.0.0/8 (本地回环)
+    """
+    if not ip:
+        return True
+    
+    # 检查回环地址
+    if ip.startswith("127."):
+        return True
+    
+    # 检查 10.x.x.x
+    if ip.startswith("10."):
+        return True
+    
+    # 检查 172.16.x.x - 172.31.x.x
+    if ip.startswith("172."):
+        parts = ip.split(".")
+        if len(parts) >= 2:
+            second = int(parts[1])
+            if 16 <= second <= 31:
+                return True
+    
+    # 检查 192.168.x.x
+    if ip.startswith("192.168."):
+        return True
+    
+    return False
+
+
+async def get_city_by_ip(client_ip: str = None) -> tuple[str | None, str]:
     """
     根据 IP 地址获取城市名
     
@@ -13,12 +49,20 @@ async def get_city_by_ip(client_ip: str = None) -> str | None:
         client_ip: 客户端 IP 地址
         
     返回:
-        城市名，如 "北京"，如果获取失败返回 None
+        (城市名, 状态消息)
+        - 成功时: ("北京", "成功消息")
+        - 失败时: (None, "错误原因")
     """
     print("=" * 80)
     print("🌍 IP 定位服务 - 开始")
     print("=" * 80)
     print(f"📍 接收到的 IP: {client_ip}")
+    
+    # 检查是否为内网 IP
+    if is_private_ip(client_ip):
+        print(f"⚠️ 检测到内网 IP: {client_ip}")
+        print("=" * 80)
+        return None, f"内网IP({client_ip})，无法自动获取城市"
     
     try:
         # 如果没有提供 IP，使用请求者的 IP
@@ -43,12 +87,13 @@ async def get_city_by_ip(client_ip: str = None) -> str | None:
                 country = data.get("country")
                 print(f"✅ IP 定位成功! 城市: {city}, 国家: {country}")
                 print("=" * 80)
-                return city
+                return city, f"成功"
             else:
-                print(f"❌ IP 定位失败: {data.get('message', '未知错误')}")
+                error_msg = data.get('message', '未知错误')
+                print(f"❌ IP 定位失败: {error_msg}")
                 print("=" * 80)
-                return None
+                return None, f"API错误: {error_msg}"
     except Exception as e:
         print(f"❌ IP 定位异常: {e}")
         print("=" * 80)
-        return None
+        return None, f"异常: {str(e)}"
