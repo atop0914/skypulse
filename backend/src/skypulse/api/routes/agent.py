@@ -75,7 +75,10 @@ async def chat(request: ChatRequest):
 async def get_user_message(request: ChatRequest, http_request: Request) -> str:
     """
     获取用户消息，如果没提供城市则自动获取当前城市
-    优先使用前端传递的 IP，其次使用请求头中的 IP
+    优先顺序：
+    1. X-Real-IP (Nginx 传递的真实 IP)
+    2. X-Forwarded-For (反向代理场景)
+    3. 前端传递的 IP (后备)
     """
     message = request.message
     
@@ -88,16 +91,22 @@ async def get_user_message(request: ChatRequest, http_request: Request) -> str:
     
     # 如果没有提到城市，自动获取用户 IP 对应的城市
     if not has_city:
-        # 优先使用前端传递的 IP
-        client_ip = request.ip
+        client_ip = None
         
-        # 如果没有前端传递的 IP，尝试从请求头获取
+        # 1. 优先从 X-Real-IP 获取（Nginx 传递的真实 IP）
+        real_ip = http_request.headers.get("X-Real-IP")
+        if real_ip:
+            client_ip = real_ip
+        
+        # 2. 其次从 X-Forwarded-For 获取
         if not client_ip:
             forwarded_for = http_request.headers.get("X-Forwarded-For")
             if forwarded_for:
                 client_ip = forwarded_for.split(",")[0].strip()
-            elif http_request.client:
-                client_ip = http_request.client.host
+        
+        # 3. 最后使用前端传递的 IP（后备）
+        if not client_ip:
+            client_ip = request.ip
         
         if client_ip:
             city = await get_city_by_ip(client_ip)

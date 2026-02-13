@@ -4,7 +4,6 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: skypulse-backend
-    # 注意：这里的 service 名字叫 backend，Nginx 找的就是它
     restart: unless-stopped
     env_file: .env
     expose:
@@ -23,13 +22,28 @@ services:
       dockerfile: Dockerfile
     container_name: skypulse-frontend
     restart: unless-stopped
-    ports:
-      - "80:80"
+    expose:
+      - "80"
+    networks:
+      - skypulse-net
     depends_on:
       backend:
         condition: service_healthy
+
+  nginx:
+    image: nginx:latest
+    container_name: skypulse-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
       - skypulse-net
+    depends_on:
+      - frontend
+      - backend
 
 networks:
   skypulse-net:
