@@ -18,9 +18,29 @@ api.interceptors.response.use(
   }
 );
 
+// 获取客户端 IP 地址
+let cachedIp: string | null = null;
+export async function getClientIP(): Promise<string | null> {
+  if (cachedIp) return cachedIp;
+  
+  try {
+    const response = await fetch('https://api.ipify.org?format=json', {
+      method: 'GET',
+      mode: 'cors',
+    });
+    const data = await response.json();
+    cachedIp = data.ip;
+    return cachedIp;
+  } catch (e) {
+    console.error('获取客户端IP失败:', e);
+    return null;
+  }
+}
+
 export const chatApi = {
   sendMessage: async (message: string): Promise<ChatResponse> => {
-    const response = await api.post<ChatResponse>('/chat', { message } as ChatRequest);
+    const ip = await getClientIP();
+    const response = await api.post<ChatResponse>('/chat', { message, ip } as ChatRequest);
     return response.data;
   },
 
@@ -28,12 +48,14 @@ export const chatApi = {
     message: string,
     onChunk: (chunk: string) => void
   ): Promise<void> => {
+    const ip = await getClientIP();
+    
     const response = await fetch('/api/v1/chat/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, ip }),
     });
 
     if (!response.ok) {

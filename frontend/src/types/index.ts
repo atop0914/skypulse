@@ -23,6 +23,7 @@ export interface ForecastDay {
 
 export interface ChatRequest {
   message: string;
+  ip?: string;  // 客户端 IP，用于自动获取城市
 }
 
 export interface ChatResponse {

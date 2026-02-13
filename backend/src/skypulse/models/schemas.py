@@ -43,6 +43,7 @@ class ChatRequest(BaseModel):
 
     message: str
     user_id: Optional[str] = None
+    ip: Optional[str] = None  # 客户端 IP，用于自动获取城市
 
 
 class ChatResponse(BaseModel):

@@ -53,6 +53,7 @@ async def chat(request: ChatRequest):
 async def get_user_message(request: ChatRequest, http_request: Request) -> str:
     """
     获取用户消息，如果没提供城市则自动获取当前城市
+    优先使用前端传递的 IP，其次使用请求头中的 IP
     """
     message = request.message
     
@@ -65,16 +66,21 @@ async def get_user_message(request: ChatRequest, http_request: Request) -> str:
     
     # 如果没有提到城市，自动获取用户 IP 对应的城市
     if not has_city:
-        # 获取客户端 IP
-        client_ip = http_request.client.host if http_request.client else None
-        # 尝试从请求头获取真实 IP（反向代理场景）
-        forwarded_for = http_request.headers.get("X-Forwarded-For")
-        if forwarded_for:
-            client_ip = forwarded_for.split(",")[0].strip()
+        # 优先使用前端传递的 IP
+        client_ip = request.ip
         
-        city = await get_city_by_ip(client_ip)
-        if city:
-            message = f"{city} {message}"
+        # 如果没有前端传递的 IP，尝试从请求头获取
+        if not client_ip:
+            forwarded_for = http_request.headers.get("X-Forwarded-For")
+            if forwarded_for:
+                client_ip = forwarded_for.split(",")[0].strip()
+            elif http_request.client:
+                client_ip = http_request.client.host
+        
+        if client_ip:
+            city = await get_city_by_ip(client_ip)
+            if city:
+                message = f"{city} {message}"
     
     return message
 
@@ -84,7 +90,7 @@ async def chat_stream(request: ChatRequest, http_request: Request):
     """
     流式聊天接口 - SSE 流式传输
     
-    如果用户没有提供城市，会自动根据 IP 获取用户所在城市
+    如果用户没有提供城市，会自动根据IP获取用户所在城市
     """
     # 处理消息，自动补充城市信息
     processed_message = await get_user_message(request, http_request)
