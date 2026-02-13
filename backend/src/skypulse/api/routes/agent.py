@@ -1,11 +1,12 @@
 """REST API 路由"""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 
 from skypulse.agent.agent import WeatherAgent
 from skypulse.core.config import settings
 from skypulse.models.schemas import ChatRequest, ChatResponse
+from skypulse.services.ip_service import get_city_by_ip
 
 router = APIRouter(prefix="/api/v1", tags=["weather"])
 
@@ -49,22 +50,50 @@ async def chat(request: ChatRequest):
     return ChatResponse(response=response_text)
 
 
+async def get_user_message(request: ChatRequest, http_request: Request) -> str:
+    """
+    获取用户消息，如果没提供城市则自动获取当前城市
+    """
+    message = request.message
+    
+    # 检查消息是否包含城市关键词
+    city_keywords = ["北京", "上海", "广州", "深圳", "杭州", "南京", "成都", "重庆", 
+                    "武汉", "西安", "苏州", "天津", "长沙", "郑州", "济南", "青岛",
+                    "城市", "地点", "哪里", "哪个城市"]
+    
+    has_city = any(keyword in message for keyword in city_keywords)
+    
+    # 如果没有提到城市，自动获取用户 IP 对应的城市
+    if not has_city:
+        # 获取客户端 IP
+        client_ip = http_request.client.host if http_request.client else None
+        # 尝试从请求头获取真实 IP（反向代理场景）
+        forwarded_for = http_request.headers.get("X-Forwarded-For")
+        if forwarded_for:
+            client_ip = forwarded_for.split(",")[0].strip()
+        
+        city = await get_city_by_ip(client_ip)
+        if city:
+            message = f"{city} {message}"
+    
+    return message
+
+
 @router.post("/chat/stream")
-async def chat_stream(request: ChatRequest):
+async def chat_stream(request: ChatRequest, http_request: Request):
     """
     流式聊天接口 - SSE 流式传输
-
-    参数:
-        request: 包含用户消息的请求体
-
-    返回:
-        StreamingResponse: SSE 流式响应
+    
+    如果用户没有提供城市，会自动根据 IP 获取用户所在城市
     """
+    # 处理消息，自动补充城市信息
+    processed_message = await get_user_message(request, http_request)
+    
     agent = get_agent()
 
     async def generate():
         """生成 SSE 事件流"""
-        async for chunk in agent.stream_query(request.message):
+        async for chunk in agent.stream_query(processed_message):
             # SSE 格式: data: <内容>\n\n
             yield f"data: {chunk}\n\n"
 
