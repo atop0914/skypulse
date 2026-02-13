@@ -82,33 +82,64 @@ async def get_user_message(message: str, http_request: Request) -> str:
     1. X-Real-IP (Nginx 传递的真实 IP)
     2. X-Forwarded-For (反向代理场景)
     """
+    print()
+    print("=" * 80)
+    print("🔍 开始处理用户消息 - 自动城市识别")
+    print("=" * 80)
+    print(f"📝 原始用户消息: {message}")
+    
     # 检查消息是否包含城市关键词
     city_keywords = ["北京", "上海", "广州", "深圳", "杭州", "南京", "成都", "重庆", 
                     "武汉", "西安", "苏州", "天津", "长沙", "郑州", "济南", "青岛",
                     "城市", "地点", "哪里", "哪个城市"]
     
     has_city = any(keyword in message for keyword in city_keywords)
+    print(f"🔍 是否包含城市关键词: {has_city}")
     
     # 如果没有提到城市，自动获取用户 IP 对应的城市
     if not has_city:
         client_ip = None
+        ip_source = None
         
         # 1. 优先从 X-Real-IP 获取（Nginx 传递的真实 IP）
         real_ip = http_request.headers.get("X-Real-IP")
         if real_ip:
             client_ip = real_ip
+            ip_source = "X-Real-IP"
+            print(f"📍 从 X-Real-IP 获取到 IP: {client_ip}")
         
         # 2. 其次从 X-Forwarded-For 获取
         if not client_ip:
             forwarded_for = http_request.headers.get("X-Forwarded-For")
             if forwarded_for:
                 client_ip = forwarded_for.split(",")[0].strip()
+                ip_source = "X-Forwarded-For"
+                print(f"📍 从 X-Forwarded-For 获取到 IP: {client_ip}")
+        
+        # 3. 最后使用客户端 IP
+        if not client_ip and http_request.client:
+            client_ip = http_request.client.host
+            ip_source = "client"
+            print(f"📍 从客户端获取到 IP: {client_ip}")
+        
+        print(f"📍 最终使用的 IP: {client_ip} (来源: {ip_source})")
         
         if client_ip:
+            # 调用 IP 定位服务
             city = await get_city_by_ip(client_ip)
+            print(f"🌆 获取到的城市: {city}")
+            
             if city:
                 message = f"{city} {message}"
+                print(f"✅ 已将城市添加到消息: {message}")
+            else:
+                print("❌ 无法获取城市，不修改消息")
+        else:
+            print("❌ 无法获取客户端 IP")
+    else:
+        print("✅ 用户消息已包含城市关键词，跳过自动城市识别")
     
+    print("=" * 80)
     return message
 
 
