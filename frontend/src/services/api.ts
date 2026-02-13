@@ -18,29 +18,9 @@ api.interceptors.response.use(
   }
 );
 
-// 获取客户端 IP 地址 - 调用自己的后端接口
-let cachedIp: string | null = null;
-export async function getClientIP(): Promise<string | null> {
-  if (cachedIp) return cachedIp;
-  
-  try {
-    // 调用后端的 /api/v1/ip 接口获取 IP
-    const response = await api.get('/ip');
-    if (response.data && response.data.ip) {
-      cachedIp = response.data.ip;
-      return cachedIp;
-    }
-    return null;
-  } catch (e) {
-    console.error('获取客户端IP失败:', e);
-    return null;
-  }
-}
-
 export const chatApi = {
   sendMessage: async (message: string): Promise<ChatResponse> => {
-    const ip = await getClientIP();
-    const response = await api.post<ChatResponse>('/chat', { message, ip } as ChatRequest);
+    const response = await api.post<ChatResponse>('/chat', { message } as ChatRequest);
     return response.data;
   },
 
@@ -48,14 +28,14 @@ export const chatApi = {
     message: string,
     onChunk: (chunk: string) => void
   ): Promise<void> => {
-    const ip = await getClientIP();
-    
+    // 直接发送请求，不传递 IP
+    // IP 由 Nginx 通过 X-Real-IP 传给后端
     const response = await fetch('/api/v1/chat/stream', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, ip }),
+      body: JSON.stringify({ message }),
     });
 
     if (!response.ok) {

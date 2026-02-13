@@ -1,7 +1,7 @@
 """REST API 路由"""
 
 from fastapi import APIRouter, Request
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse
 
 from skypulse.agent.agent import WeatherAgent
 from skypulse.core.config import settings
@@ -32,19 +32,21 @@ async def health_check():
 @router.get("/ip")
 async def get_client_ip(request: Request):
     """
-    获取客户端 IP 地址
-    
-    优先返回：
-    1. X-Forwarded-For 请求头（反向代理场景）
-    2. 请求的客户端 IP
+    获取客户端 IP 地址（调试用）
+    正常情况下 IP 由 Nginx 通过 X-Real-IP 传递
     """
-    # 优先从 X-Forwarded-For 获取
+    # 优先从 X-Real-IP 获取（Nginx 传递的真实 IP）
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return {"ip": real_ip, "source": "X-Real-IP"}
+    
+    # 其次从 X-Forwarded-For 获取
     forwarded_for = request.headers.get("X-Forwarded-For")
     if forwarded_for:
         ip = forwarded_for.split(",")[0].strip()
         return {"ip": ip, "source": "X-Forwarded-For"}
     
-    # 其次使用客户端 IP
+    # 最后使用客户端 IP
     if request.client:
         return {"ip": request.client.host, "source": "client"}
     
@@ -72,16 +74,14 @@ async def chat(request: ChatRequest):
     return ChatResponse(response=response_text)
 
 
-async def get_user_message(request: ChatRequest, http_request: Request) -> str:
+async def get_user_message(message: str, http_request: Request) -> str:
     """
     获取用户消息，如果没提供城市则自动获取当前城市
-    优先顺序：
+    
+    IP 获取顺序（由 Nginx 传递）：
     1. X-Real-IP (Nginx 传递的真实 IP)
     2. X-Forwarded-For (反向代理场景)
-    3. 前端传递的 IP (后备)
     """
-    message = request.message
-    
     # 检查消息是否包含城市关键词
     city_keywords = ["北京", "上海", "广州", "深圳", "杭州", "南京", "成都", "重庆", 
                     "武汉", "西安", "苏州", "天津", "长沙", "郑州", "济南", "青岛",
@@ -104,10 +104,6 @@ async def get_user_message(request: ChatRequest, http_request: Request) -> str:
             if forwarded_for:
                 client_ip = forwarded_for.split(",")[0].strip()
         
-        # 3. 最后使用前端传递的 IP（后备）
-        if not client_ip:
-            client_ip = request.ip
-        
         if client_ip:
             city = await get_city_by_ip(client_ip)
             if city:
@@ -121,10 +117,10 @@ async def chat_stream(request: ChatRequest, http_request: Request):
     """
     流式聊天接口 - SSE 流式传输
     
-    如果用户没有提供城市，会自动根据IP获取用户所在城市
+    如果用户没有提供城市，会自动根据 Nginx 传递的真实 IP 获取用户所在城市
     """
     # 处理消息，自动补充城市信息
-    processed_message = await get_user_message(request, http_request)
+    processed_message = await get_user_message(request.message, http_request)
     
     agent = get_agent()
 
