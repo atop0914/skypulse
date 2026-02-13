@@ -1,6 +1,7 @@
 """LangChain Weather Agent"""
 
 from langchain.agents import create_agent
+from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 
 from skypulse.core.config import settings
@@ -48,7 +49,7 @@ class WeatherAgent:
         )
 
     async def query(self, question: str) -> str:
-        """查询天气"""
+        """查询天气（非流式）"""
         result = await self.agent.ainvoke({"messages": [{"role": "user", "content": question}]})
         # 返回最后一条 assistant 的消息内容
         messages = result.get("messages", [])
@@ -57,3 +58,31 @@ class WeatherAgent:
             if msg.type == "ai":
                 return msg.content
         return str(result)
+
+    async def stream_query(self, question: str):
+        """流式查询天气 - 逐字输出，只返回AI文本回复"""
+        from langchain_core.messages import HumanMessage, AIMessageChunk
+        
+        # 使用 LLM 的原生流式接口，结合 tool 调用
+        # 首先让 agent 执行 tool 调用
+        full_result = ""
+        
+        async for event in self.agent.astream(
+            {"messages": [HumanMessage(content=question)]},
+            stream_mode="messages"
+        ):
+            # messages 模式返回 (chunk, metadata) 元组
+            if len(event) >= 1:
+                chunk = event[0]
+                # 只处理 AI 消息的增量内容
+                if isinstance(chunk, AIMessageChunk):
+                    content = chunk.content
+                    if content:
+                        # 过滤掉 JSON 格式的工具返回结果
+                        stripped = content.strip()
+                        if stripped.startswith('{') and stripped.endswith('}'):
+                            continue
+                        if stripped.startswith('[') and stripped.endswith(']'):
+                            continue
+                        # 输出内容
+                        yield content

@@ -5,20 +5,24 @@ import { useChatStore } from './store/useChatStore';
 import { chatApi } from './services/api';
 
 const App: React.FC = () => {
-  const { addMessage, setLoading, setWeatherData } = useChatStore();
+  const { addMessage, appendToLastAssistantMessage, setLoading } = useChatStore();
 
   const handleSendMessage = async (message: string) => {
     addMessage('user', message);
     setLoading(true);
-    
+
     try {
-      const response = await chatApi.sendMessage(message);
-      addMessage('assistant', response.response);
-      if (response.weather) {
-        setWeatherData(response.weather);
-      }
+      // 添加空的 assistant 消息作为占位符
+      addMessage('assistant', '');
+
+      // 使用流式发送
+      await chatApi.sendMessageStream(message, (chunk) => {
+        // 逐块追加到最后一条 assistant 消息
+        appendToLastAssistantMessage(chunk);
+      });
     } catch (error) {
-      addMessage('assistant', '抱歉，遇到了一些问题。请稍后再试。');
+      // 如果出错，追加错误消息
+      appendToLastAssistantMessage('抱歉，遇到了一些问题。请稍后再试。');
       console.error('Failed to send message:', error);
     } finally {
       setLoading(false);
