@@ -18,19 +18,19 @@ api.interceptors.response.use(
   }
 );
 
-// 获取客户端 IP 地址
+// 获取客户端 IP 地址 - 调用自己的后端接口
 let cachedIp: string | null = null;
 export async function getClientIP(): Promise<string | null> {
   if (cachedIp) return cachedIp;
   
   try {
-    const response = await fetch('https://api.ipify.org?format=json', {
-      method: 'GET',
-      mode: 'cors',
-    });
-    const data = await response.json();
-    cachedIp = data.ip;
-    return cachedIp;
+    // 调用后端的 /api/v1/ip 接口获取 IP
+    const response = await api.get('/ip');
+    if (response.data && response.data.ip) {
+      cachedIp = response.data.ip;
+      return cachedIp;
+    }
+    return null;
   } catch (e) {
     console.error('获取客户端IP失败:', e);
     return null;

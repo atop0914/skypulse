@@ -1,7 +1,7 @@
 """REST API 路由"""
 
 from fastapi import APIRouter, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
 
 from skypulse.agent.agent import WeatherAgent
 from skypulse.core.config import settings
@@ -27,6 +27,28 @@ def get_agent() -> WeatherAgent:
 async def health_check():
     """健康检查接口"""
     return {"status": "ok", "service": "skypulse"}
+
+
+@router.get("/ip")
+async def get_client_ip(request: Request):
+    """
+    获取客户端 IP 地址
+    
+    优先返回：
+    1. X-Forwarded-For 请求头（反向代理场景）
+    2. 请求的客户端 IP
+    """
+    # 优先从 X-Forwarded-For 获取
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        ip = forwarded_for.split(",")[0].strip()
+        return {"ip": ip, "source": "X-Forwarded-For"}
+    
+    # 其次使用客户端 IP
+    if request.client:
+        return {"ip": request.client.host, "source": "client"}
+    
+    return {"ip": None, "source": "unknown"}
 
 
 @router.post("/chat", response_model=ChatResponse)
