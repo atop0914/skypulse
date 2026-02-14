@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from skypulse.agent.agent import WeatherAgent
 from skypulse.core.config import settings
 from skypulse.models.schemas import ChatRequest, ChatResponse
-from skypulse.services.ip_service import get_city_by_ip
+from skypulse.services.ip_service import get_city_by_ip, get_public_ip
 
 router = APIRouter(prefix="/api/v1", tags=["weather"])
 
@@ -76,32 +76,39 @@ async def chat(request: ChatRequest, http_request: Request):
 
 def _get_city_from_request(request: Request) -> str:
     """从请求中获取IP并转换为城市"""
-    import asyncio
-    import concurrent.futures
+    # 直接获取公网IP并转换为城市（不依赖Nginx header）
+    # 使用 ipify.org 获取公网IP，然后用 ip-api.com 获取城市
     
-    # 获取客户端IP
-    client_ip = request.headers.get("X-Real-IP") or \
-                request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
-                (request.client.host if request.client else None)
-    
-    if not client_ip or client_ip in ("127.0.0.1", "unknown"):
-        return None
-    
-    # 同步调用获取城市
     try:
-        # 在同步函数中运行异步函数
-        async def _get_city():
-            return await get_city_by_ip(client_ip)
+        import requests
+        # 获取公网IP
+        ip_resp = requests.get("https://api.ipify.org?format=json", timeout=5)
+        public_ip = ip_resp.json().get("ip")
         
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            city, status = loop.run_until_complete(_get_city())
-        finally:
-            loop.close()
-        return city
+        if not public_ip:
+            return None
+            
+        print(f"✅ 获取到公网IP: {public_ip}")
+        
+        # 获取城市和国籍
+        city_resp = requests.get(f"http://ip-api.com/json/{public_ip}?fields=status,country,countryCode,city", timeout=5)
+        data = city_resp.json()
+        
+        if data.get("status") == "success":
+            country = data.get("country", "")
+            city = data.get("city", "")
+            
+            # 只返回中国城市的IP定位结果
+            if country in ("China", "中国") or data.get("countryCode") == "CN":
+                print(f"✅ 获取到中国城市: {city}")
+                return city
+            else:
+                print(f"⚠️ IP位于 {country} {city}，不是中国城市，跳过自动定位")
+                return None
+        
+        return None
     except Exception as e:
-        print(f"❌ IP转城市失败: {e}")
+        print(f"❌ 获取城市失败: {e}")
         return None
 
 

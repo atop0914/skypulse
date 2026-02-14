@@ -41,18 +41,49 @@ def is_private_ip(ip: str) -> bool:
     return False
 
 
+async def get_public_ip() -> str | None:
+    """获取当前公网IP"""
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            # 使用 ipify 获取公网IP
+            resp = await client.get("https://api.ipify.org?format=json")
+            data = resp.json()
+            return data.get("ip")
+    except Exception as e:
+        print(f"❌ 获取公网IP失败: {e}")
+        return None
+
+
 async def get_city_by_ip(client_ip: str = None) -> tuple[str | None, str]:
     """
     根据 IP 地址获取城市名
     
     参数:
-        client_ip: 客户端 IP 地址
+        client_ip: 客户端 IP 地址（可选，不传则自动获取公网IP）
         
     返回:
         (城市名, 状态消息)
         - 成功时: ("北京", "成功消息")
         - 失败时: (None, "错误原因")
     """
+    print("=" * 80)
+    print("🌍 IP 定位服务 - 开始")
+    print("=" * 80)
+    
+    # 如果没有提供 IP，自动获取公网IP
+    if not client_ip:
+        print("📍 未提供IP，自动获取公网IP...")
+        client_ip = await get_public_ip()
+        print(f"✅ 获取到公网IP: {client_ip}")
+    
+    if not client_ip:
+        print("❌ 无法获取公网IP")
+        print("=" * 80)
+        return None, "无法获取公网IP"
+    
+    # 检查是否为内网IP（如果是内网IP，ip-api.com也可以返回当前出口IP的城市）
+    # 所以这里不做内网检查，直接调用API
+    
     print("=" * 80)
     print("🌍 IP 定位服务 - 开始")
     print("=" * 80)
