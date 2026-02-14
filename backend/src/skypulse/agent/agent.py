@@ -1,11 +1,20 @@
 """LangChain Weather Agent"""
 
+import re
+
 from langchain.agents import create_agent
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 
 from skypulse.core.config import settings
 from skypulse.services.qweather_service import qweather_tool
+
+
+# 检测LLM是否需要城市（回复中包含这类关键词）
+CITY_REQUIRED_PATTERNS = [
+    "哪个城市", "哪个城市", "告诉", "城市名称", "城市吗", 
+    "想查询哪个城市", "请告诉我", "请说", "请问您"
+]
 
 
 class WeatherAgent:
@@ -48,16 +57,47 @@ class WeatherAgent:
             debug=False,
         )
 
-    async def query(self, question: str) -> str:
-        """查询天气（非流式）"""
+    def _need_city(self, response: str) -> bool:
+        """检测回复是否表明需要城市"""
+        for pattern in CITY_REQUIRED_PATTERNS:
+            if pattern in response:
+                return True
+        return False
+
+    async def query(self, question: str, get_city_by_ip=None) -> str:
+        """查询天气（非流式）
+        
+        Args:
+            question: 用户问题
+            get_city_by_ip: 可选的同步回调函数，用于通过IP获取城市
+        """
+        # 第一次问LLM
         result = await self.agent.ainvoke({"messages": [{"role": "user", "content": question}]})
-        # 返回最后一条 assistant 的消息内容
+        
+        # 获取LLM回复
         messages = result.get("messages", [])
+        response = ""
         for msg in reversed(messages):
-            # LangChain 消息使用 type 属性，值如 'ai', 'human', 'tool'
             if msg.type == "ai":
-                return msg.content
-        return str(result)
+                response = msg.content
+                break
+        
+        # 如果LLM没有要城市，且提供了get_city_by_ip回调，则尝试获取城市
+        if self._need_city(response) and get_city_by_ip:
+            # 获取城市
+            city = get_city_by_ip()
+            if city:
+                print(f"🔍 通过IP获取到城市: {city}")
+                # 把城市加到问题里，再问一次
+                new_question = f"{city} {question}"
+                result = await self.agent.ainvoke({"messages": [{"role": "user", "content": new_question}]})
+                messages = result.get("messages", [])
+                for msg in reversed(messages):
+                    if msg.type == "ai":
+                        return msg.content
+                return str(result)
+        
+        return response
 
     async def stream_query(self, question: str):
         """流式查询天气 - 逐字输出，只返回AI文本回复"""

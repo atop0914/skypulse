@@ -54,18 +54,55 @@ async def get_client_ip(request: Request):
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
+async def chat(request: ChatRequest, http_request: Request):
     """
     聊天接口 - 接收用户消息，调用天气 Agent 处理
+    
+    如果LLM无法从问题中提取城市，会自动通过IP获取城市并再次询问LLM
     """
+    # 获取客户端IP
+    def get_city_from_ip():
+        return _get_city_from_request(http_request)
+    
     # 获取 Agent 实例
     agent = get_agent()
 
-    # 调用 Agent 处理用户消息
-    response_text = await agent.query(request.message)
+    # 调用 Agent 处理用户消息（传入IP获取城市的回调）
+    response_text = await agent.query(request.message, get_city_by_ip=get_city_from_ip)
 
     # 返回响应
     return ChatResponse(response=response_text)
+
+
+def _get_city_from_request(request: Request) -> str:
+    """从请求中获取IP并转换为城市"""
+    import asyncio
+    import concurrent.futures
+    
+    # 获取客户端IP
+    client_ip = request.headers.get("X-Real-IP") or \
+                request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
+                (request.client.host if request.client else None)
+    
+    if not client_ip or client_ip in ("127.0.0.1", "unknown"):
+        return None
+    
+    # 同步调用获取城市
+    try:
+        # 在同步函数中运行异步函数
+        async def _get_city():
+            return await get_city_by_ip(client_ip)
+        
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            city, status = loop.run_until_complete(_get_city())
+        finally:
+            loop.close()
+        return city
+    except Exception as e:
+        print(f"❌ IP转城市失败: {e}")
+        return None
 
 
 async def get_user_message(message: str, http_request: Request) -> tuple[str, str]:
