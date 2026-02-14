@@ -83,16 +83,19 @@ async def log_requests(request: Request, call_next):
     process_time = (time.time() - start_time) * 1000
     
     # 记录响应状态
-    response_body = b""
-    if response.headers.get("content-type", "").startswith("application/json"):
-        response_body = response.body
-        try:
-            response_body = json.loads(response_body.decode("utf-8"))
-            # 隐藏敏感信息
-            if isinstance(response_body, dict) and "response" in response_body:
-                response_body["response"] = response_body["response"][:100] + "..." if len(response_body.get("response", "")) > 100 else response_body["response"]
-        except Exception:
-            response_body = {"error": "无法解析响应体"}
+    response_body = ""
+    try:
+        if hasattr(response, 'body') and response.headers.get("content-type", "").startswith("application/json"):
+            response_body = response.body
+            try:
+                response_body = json.loads(response_body.decode("utf-8"))
+                # 隐藏敏感信息
+                if isinstance(response_body, dict) and "response" in response_body:
+                    response_body["response"] = response_body["response"][:100] + "..." if len(response_body.get("response", "")) > 100 else response_body["response"]
+            except Exception:
+                response_body = {"error": "无法解析响应体"}
+    except Exception:
+        response_body = {"error": "无法获取响应体"}
     
     # 打印请求结束日志
     print(f"✅ 状态码: {response.status_code}")
